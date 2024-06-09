@@ -87,7 +87,7 @@ class TrainableBlockConfig:
         cfg: Hydra configuration dictionary.
     """
 
-    def __init__(self, cfg: dict, out_features: int, out_channels: int, input_size: int):
+    def __init__(self, cfg: dict, out_features: int = None, out_channels: int = None, input_size: int = None):
         self.out_featuers: int = out_features
         self.out_channels: int = out_channels
         self.input_size: int = input_size
@@ -102,7 +102,8 @@ class TrainableBlockConfig:
 
         if not self.head_type in ["linear", "mlp", "conv", "conv_2", "identity"]:
             raise ValueError(f"Invalid head type: {self.head_type}")
-        raise NotImplementedError
+        if out_features is None and (out_channels is None or input_size is None):
+            raise ValueError("`out_features` or (`out_channels` and `input_size`) must be specified.")
 
 
 class TrainableBlock1d(nn.Module):
