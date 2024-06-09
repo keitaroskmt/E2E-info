@@ -1,0 +1,33 @@
+defaults:
+  - dataset: cifar10
+  - optimizer: adam
+  - lr_scheduler: multisteplr
+  - override hydra/output: single
+  - _self_
+
+name: main_lw
+seed: 1
+num_epochs: 400
+gpu: 0
+save_freq: 50
+trial: 0
+num_workers: 8
+model:
+  name: resnet50
+dataset:
+  validation_ratio: 0.0
+optimizer:
+  learning_rate: 5e-4
+  weight_decay: 0.0
+  momentum: 0.9
+lr_scheduler:
+  milestones: [200,300,350,375]
+loss_type: cross_entropy
+head_type: linear
+id: original
+
+use_activation: True
+temperature: 0.1
+base_temperature: 0.07
+lambda_reg: 0.0
+lambda_nhsic: 0.0

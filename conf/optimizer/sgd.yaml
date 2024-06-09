@@ -1,0 +1,7 @@
+# @package _global_
+optimizer:
+  name: sgd
+  learning_rate: 0.1
+  weight_decay: 1e-6
+  momentum: 0.9
+  nesterov: true

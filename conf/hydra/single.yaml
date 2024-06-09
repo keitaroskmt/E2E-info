@@ -1,0 +1,6 @@
+# @package _global_
+hydra:
+  run:
+    dir: experimental_results/${name}/${dataset.name}/${model.name}/seed-${seed}/${now:%Y-%m-%d}/${now:%H-%M-%S}
+  sweep:
+    dir: experimental_results/${name}/${dataset.name}/${model.name}/seed-${seed}/${now:%Y-%m-%d}/${now:%H-%M-%S}

@@ -1,0 +1,5 @@
+# @package _global_
+lr_scheduler:
+  name: multisteplr
+  milestones: [200,300,350,375]
+  gamma: 0.20

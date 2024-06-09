@@ -1,0 +1,8 @@
+# @package _global_
+dataset:
+  name: mnist
+  size: 28
+  validation_ratio: 0.2
+  batch_size: 128
+  num_classes: 10
+  num_channels: 1

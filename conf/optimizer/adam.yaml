@@ -1,0 +1,5 @@
+# @package _global_
+optimizer:
+  name: adam
+  learning_rate: 0.001
+  weight_decay: 1e-4
