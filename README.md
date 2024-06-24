@@ -4,7 +4,13 @@ Supplementary codes for our paper ["End-to-End Training Induces Information Bott
 It provides useful implementations for **various layer-wise training methods** and **HSIC-based analyses**.
 
 ## TODO List
+#### Overall
+- [ ] Add documents to run main files
+- [ ] Test on GPU machine
+- [ ] Add codes to reproduce nHSIC dynamics
+
 #### Training Algorithms
+- [x] Layer-wise training
 - [x] Sequential layer-wise training
 - [ ] Signal Propagation
 - [ ] Forward-Forward algorithm
