@@ -1,3 +1,8 @@
+"""Main file for layer-wise training.
+The layer-model is trained in a simultaneous way, i.e., each block is simultaneously updated based on the local loss
+after a single forward pass.
+"""
+
 import os
 import logging
 import pprint
