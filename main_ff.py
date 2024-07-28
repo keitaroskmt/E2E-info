@@ -129,8 +129,8 @@ def main(cfg: OmegaConf) -> None:
     model.train()
     train(cfg=cfg, model=model, train_loader=train_loader, device=device)
 
-    train_acc = 100.0 * calc_accuracy(model, device, train_loader)
-    test_acc = 100.0 * calc_accuracy(model, device, test_loader)
+    train_acc = 100.0 * calc_accuracy(model=model, loader=train_loader, device=device)
+    test_acc = 100.0 * calc_accuracy(model=model, loader=test_loader, device=device)
 
     logger.info({"train_acc": train_acc, "test_acc": test_acc})
 

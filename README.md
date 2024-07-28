@@ -10,7 +10,7 @@ Under work
 ### Forward-Forward Algorithm
 Train models with Forward-Forward algorithm by [Hinton, 2022](https://arxiv.org/abs/2212.13345) with
 ```
-Python main_ff.py
+python main_ff.py
 ```
 
 Currently, toy MLP and CNN models are supported.
