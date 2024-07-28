@@ -37,7 +37,7 @@ class FFBlock(nn.Module):
     def forward(self, x):
         return self.activation(self.block(self.normalize(x)))
 
-    def train(self, x_pos, x_neg) -> None:
+    def train_block(self, x_pos, x_neg) -> None:
         g_pos = self.forward(x_pos).pow(2).view(x_pos.size(0), -1).mean(dim=1)
         g_neg = self.forward(x_neg).pow(2).view(x_neg.size(0), -1).mean(dim=1)
         # The following loss pushes pos (neg) samples to

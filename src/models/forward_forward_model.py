@@ -57,7 +57,7 @@ class FFModel(torch.nn.Module):
                 h_pos, h_neg = x_pos, x_neg
                 for layer in self.layers:
                     if isinstance(layer, FFBlock):
-                        layer.train(h_pos, h_neg)
+                        layer.train_block(h_pos, h_neg)
                     h_pos, h_neg = layer(h_pos).detach(), layer(h_neg).detach()
 
     def train_model_sequentially(self, train_loader: DataLoader, num_epochs: int, device: str):
@@ -80,7 +80,7 @@ class FFModel(torch.nn.Module):
                     # preparing training data for layer i
                     for earlier_layer in self.layers[:i]:
                         h_pos, h_neg = earlier_layer(h_pos).detach(), earlier_layer(h_neg).detach()
-                    layer.train(h_pos, h_neg)
+                    layer.train_block(h_pos, h_neg)
 
 
 class FFMLP(FFModel):
