@@ -1,0 +1,27 @@
+defaults:
+  - dataset: mnist
+  - optimizer: adam
+  - lr_scheduler: multisteplr
+  - override hydra/output: single
+  - _self_
+
+name: main_ff
+seed: 1
+num_epochs: 10
+gpu: 0
+trial: 0
+num_workers: 8
+model:
+  name: mlp
+dataset:
+  validation_ratio: 0.0
+optimizer:
+  learning_rate: 0.03
+  weight_decay: 0.0
+  momentum: 0.9
+id: original
+
+threshold: 2.0
+train_method: sequential
+label_embedder:
+  method: top-left

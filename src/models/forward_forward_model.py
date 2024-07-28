@@ -41,7 +41,7 @@ class FFModel(torch.nn.Module):
         goodness_per_label = torch.cat(goodness_per_label, 1)
         return goodness_per_label.argmax(1)
 
-    def train_model(self, train_loader: DataLoader, num_epochs: int, device: str):
+    def train_model_simultaneously(self, train_loader: DataLoader, num_epochs: int, device: str):
         """
         Train the model with local Forward-Forward loss.
         Each layer is trained simultaneously for every forward pass.
@@ -109,10 +109,10 @@ class FFCNN(FFModel):
     Convolutional Neural Network trained with forward-forward algorithm.
     """
 
-    def __init__(self, lr: float, opt_name: str, threshold: float, num_classes: int, image_width: int, label_embedder: LabelEmbedder, in_channel=1, device="cuda"):
+    def __init__(self, lr: float, opt_name: str, threshold: float, num_classes: int, image_width: int, label_embedder: LabelEmbedder, num_channels=1, device="cuda"):
         layers = nn.ModuleList([
             FFBlock(
-                nn.Conv2d(in_channels=in_channel, out_channels=32, kernel_size=(3, 3), device=device),
+                nn.Conv2d(in_channels=num_channels, out_channels=32, kernel_size=(3, 3), device=device),
                 lr=lr,
                 opt_name=opt_name,
                 threshold=threshold,
