@@ -8,7 +8,7 @@ It provides useful implementations for **various layer-wise training methods** a
 Under work
 
 ### Forward-Forward Algorithm
-Train models with forward-forward algorithm by [Hinton, 2022](https://arxiv.org/abs/2212.13345) with
+Train models with Forward-Forward algorithm by [Hinton, 2022](https://arxiv.org/abs/2212.13345) with
 ```
 Python main_ff.py
 ```
@@ -16,14 +16,16 @@ Python main_ff.py
 Currently, toy MLP and CNN models are supported.
 You can try new models by adding new classes under `src/models/forward_forward_model.py`.
 
-Embedding label information into the inputs is one of the characteristics in hte Forward-Forward algorithm, and it is supported in several ways in addition to the original paper.
-For more details, please refer to the descriptions in `LabelEmbedder` class under `src/models/forward_forward_block.py`.
+Embedding label information into the inputs is one of the characteristics of the Forward-Forward algorithm, and it is supported in several ways in addition to the original paper.
+For more details, please refer to the descriptions in the `LabelEmbedder` class under `src/models/forward_forward_block.py`.
 
-For example, settings 'method=top-left' embeds class information as in the original paper like
-![ff-top-left](https://github.com/keitaroskmt/E2E-info/blob/1c62cb9223ee76d020eed0235491cf9c3419d071/images/ff_top_left.png)
+For example, settings `method=top-left` embeds class information as in the original paper like
 
-And we can also provide class information by subtracting the class prototypes is as follows.
-![ff-subtract](https://github.com/keitaroskmt/E2E-info/blob/1c62cb9223ee76d020eed0235491cf9c3419d071/images/ff_subtract.png)
+<a href="url"><img src="https://github.com/keitaroskmt/E2E-info/blob/1c62cb9223ee76d020eed0235491cf9c3419d071/images/ff_top_left.png" width=400></a>
+
+We can also provide class information by subtracting the class prototypes as follows.
+
+<a href="url"><img src="https://github.com/keitaroskmt/E2E-info/blob/1c62cb9223ee76d020eed0235491cf9c3419d071/images/ff_subtract.png" width=400></a>
 
 
 ## TODO List
