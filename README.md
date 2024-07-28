@@ -20,10 +20,10 @@ Embedding label information into the inputs is one of the characteristics in hte
 For more details, please refer to the descriptions in `LabelEmbedder` class under `src/models/forward_forward_block.py`.
 
 For example, settings 'method=top-left' embeds class information as in the original paper like
-![ff-top-left](figs/ff_top_left.pdf)
+![ff-top-left](https://github.com/keitaroskmt/E2E-info/blob/1c62cb9223ee76d020eed0235491cf9c3419d071/images/ff_top_left.png)
 
 And we can also provide class information by subtracting the class prototypes is as follows.
-![ff-subtract](figs/ff_subtract.pdf)
+![ff-subtract](https://github.com/keitaroskmt/E2E-info/blob/1c62cb9223ee76d020eed0235491cf9c3419d071/images/ff_subtract.png)
 
 
 ## TODO List
