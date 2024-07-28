@@ -20,9 +20,9 @@ class FFBlock(nn.Module):
         self.block = block
         self.threshold = threshold
 
-        if opt_name == "Adam":
+        if opt_name == "adam":
             self.optimizer = torch.optim.Adam(self.parameters(), lr=lr)
-        elif opt_name == "SGD":
+        elif opt_name == "sgd":
             self.optimizer = torch.optim.SGD(self.parameters(), lr=lr)
         else:
             raise ValueError(f"Optimizer {opt_name} is not supported.")
