@@ -3,9 +3,9 @@ from typing import cast
 
 from torch import nn
 
-from models.trainable_block import TrainableBlock1d, TrainableBlock2d, TrainableBlockConfig
-from models.layer_wise_loss import LayerWiseLossConfig
-from models.resnet import get_model_settings
+from src.models.trainable_block import TrainableBlock1d, TrainableBlock2d, TrainableBlockConfig
+from src.models.layer_wise_loss import LayerWiseLossConfig
+from src.models.resnet import get_model_settings
 
 
 class LayerWiseModelSpec(abc.ABC):

@@ -4,7 +4,7 @@ from math import ceil
 import torch
 from torch import nn, Tensor
 
-from models.layer_wise_loss import LayerWiseLossConfig, LayerWiseLoss
+from src.models.layer_wise_loss import LayerWiseLossConfig, LayerWiseLoss
 
 
 class ProjectionHead(nn.Module):

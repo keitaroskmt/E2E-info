@@ -2,7 +2,7 @@ from torch.utils.data import Dataset
 from torchvision import transforms
 from torchvision.datasets import MNIST
 
-from datasets.util import train_val_split, TwoCropTransform
+from src.datasets.util import train_val_split, TwoCropTransform
 
 
 def get_MNIST_datasets(validation_ratio=0.0, root="~/pytorch_datasets") -> tuple[Dataset, Dataset, Dataset]:

@@ -2,7 +2,7 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader
 
-from forward_forward_block import FFBlock, LabelEmbedder
+from src.models.forward_forward_block import FFBlock, LabelEmbedder
 
 
 class FFModel(torch.nn.Module):

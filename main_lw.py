@@ -12,10 +12,10 @@ from torch.utils.data import DataLoader
 import hydra
 from omegaconf import OmegaConf
 
-from datasets import mnist, cifar
-from util import calc_accuracy, AverageMeter
-from models.layer_wise_model import ModelForwardResult, LayerWiseModel
-from models.layer_wise_model_spec import LayerWiseResNetSpec, LayerWiseVGGSpec
+from src.datasets import mnist, cifar
+from src.util import calc_accuracy, AverageMeter
+from src.models.layer_wise_model import ModelForwardResult, LayerWiseModel
+from src.models.layer_wise_model_spec import LayerWiseResNetSpec, LayerWiseVGGSpec
 
 
 @hydra.main(config_path="conf", config_name="main_lw", version_base=None)

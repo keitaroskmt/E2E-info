@@ -3,8 +3,8 @@ import dataclasses
 import torch
 from torch import nn, Tensor
 
-from models.trainable_block import TrainableBlock1d, TrainableBlock2d, LayerForwardResult
-from models.layer_wise_model_spec import LayerWiseModelSpec
+from src.models.trainable_block import TrainableBlock1d, TrainableBlock2d, LayerForwardResult
+from src.models.layer_wise_model_spec import LayerWiseModelSpec
 
 
 @dataclasses.dataclass

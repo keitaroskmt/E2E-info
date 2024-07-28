@@ -11,10 +11,9 @@ from torch.utils.data import DataLoader
 import hydra
 from omegaconf import OmegaConf
 
-from datasets import mnist, cifar
-
-from models.forward_forward_block import LabelEmbedder
-from models.forward_forward_model import FFModel, FFMLP, FFCNN
+from src.datasets import mnist, cifar
+from src.models.forward_forward_block import LabelEmbedder
+from src.models.forward_forward_model import FFModel, FFMLP, FFCNN
 
 
 def calc_accuracy(model, loader: DataLoader, device: str) -> float:
