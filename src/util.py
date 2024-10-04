@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader
 def calc_accuracy(
     model: nn.Module,
     loader: DataLoader,
-    device: str,
+    device: torch.device | str,
 ) -> float:
     """Calculate the classification accuracy on the given dataset."""
     model.eval()
