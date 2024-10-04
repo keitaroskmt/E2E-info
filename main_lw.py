@@ -35,7 +35,9 @@ def main(cfg: OmegaConf) -> None:
     if dataset_name == "mnist":
         train_dataset, valid_dataset, test_dataset = mnist.get_MNIST_datasets()
     elif dataset_name == "cifar10" or dataset_name == "cifar100":
+        # Contrastive training requires a pair of images
         if cfg["loss_type"] == "supervised_contrastive":
+            # VGG model requires 32x32 input size
             if cfg["model"]["name"].startswith("vgg"):
                 train_dataset, valid_dataset, test_dataset = cifar.get_CIFAR_supcon_datasets(
                     validation_ratio=cfg["dataset"]["validation_ratio"],
@@ -153,6 +155,8 @@ def main(cfg: OmegaConf) -> None:
 
         # Validation and Logging
         if cfg["dataset"]["validation_ratio"] > 0.0 and cfg["loss_type"] != "supervised_contrastive":
+            # Calculate validation accuracy.
+            # Note that in contrastive training, the linear head has not been trained yet.
             valid_acc = 100.0 * calc_accuracy(model=model, loader=valid_loader, device=device)
             if valid_acc > best_valid_acc:
                 best_valid_acc = valid_acc
