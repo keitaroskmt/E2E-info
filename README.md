@@ -6,7 +6,7 @@ It provides useful implementations for **various layer-wise training methods** a
 
 ## Requrements
 
-- Python >= 3.10
+- Python 3.10 or later
 - PyTorch
 
 You could have error when using Python 3.9 or lower due to type hinting support.
@@ -25,7 +25,19 @@ pip install -r requirements.txt
 
 ### Layer-wise Training
 
-Under work
+To train the model in the same setting of the paper, run
+
+```bash
+python main_lw.py
+```
+
+You can specify the model and other hyperparameters by adding arguments like:
+
+```bash
+python main_lw.py model.name=vgg11
+```
+
+or modifying configuration files under `conf` directory.
 
 ### Forward-Forward Algorithm
 
