@@ -88,7 +88,7 @@ class TrainableBlockConfig:
     """
 
     def __init__(self, cfg: dict, out_features: int = None, out_channels: int = None, input_size: int = None):
-        self.out_featuers: int = out_features
+        self.out_features: int = out_features
         self.out_channels: int = out_channels
         self.input_size: int = input_size
 
@@ -138,17 +138,17 @@ class TrainableBlock1d(nn.Module):
             self.dropout: nn.Module = nn.Dropout(p=self.block_cfg.dropout_rate)
 
         if self.loss_cfg.loss_type == "cross_entropy":
-            if self.block_cfg.head_type == "identity" and self.block_cfg.out_featuers != self.block_cfg.num_classes:
+            if self.block_cfg.head_type == "identity" and self.block_cfg.out_features != self.block_cfg.num_classes:
                 raise ValueError("Output dimension must be the same as the number of classes.")
             self.head = ProjectionHead(
-                in_features=self.block_cfg.out_featuers,
+                in_features=self.block_cfg.out_features,
                 out_features=self.block_cfg.num_classes,
                 head_type=self.block_cfg.head_type,
             )
         elif self.loss_cfg.loss_type in ["similarity", "supervised_contrastive"]:
             self.head = ProjectionHead(
-                in_features=self.block_cfg.out_featuers,
-                in_features=self.block_cfg.out_featuers,
+                in_features=self.block_cfg.out_features,
+                out_features=self.block_cfg.out_features,
                 head_type=self.block_cfg.head_type,
             )
         else:
