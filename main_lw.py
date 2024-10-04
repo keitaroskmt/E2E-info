@@ -1,4 +1,5 @@
-"""Main file for layer-wise training.
+"""
+Main file for layer-wise training.
 The layer-model is trained in a simultaneous way, i.e., each block is simultaneously updated based on the local loss
 after a single forward pass.
 """
@@ -10,7 +11,7 @@ import pprint
 import torch
 from torch.utils.data import DataLoader
 import hydra
-from omegaconf import OmegaConf
+from omegaconf import DictConfig
 
 from src.datasets import mnist, cifar
 from src.util import calc_accuracy, AverageMeter
@@ -19,7 +20,7 @@ from src.models.layer_wise_model_spec import LayerWiseResNetSpec, LayerWiseVGGSp
 
 
 @hydra.main(config_path="conf", config_name="main_lw", version_base=None)
-def main(cfg: OmegaConf) -> None:
+def main(cfg: DictConfig) -> None:
     seed = cfg["seed"]
     torch.manual_seed(seed)
 
@@ -39,15 +40,19 @@ def main(cfg: OmegaConf) -> None:
         if cfg["loss_type"] == "supervised_contrastive":
             # VGG model requires 32x32 input size
             if cfg["model"]["name"].startswith("vgg"):
-                train_dataset, valid_dataset, test_dataset = cifar.get_CIFAR_supcon_datasets(
-                    validation_ratio=cfg["dataset"]["validation_ratio"],
-                    dataset_name=dataset_name,
-                    train_input_size=32,
+                train_dataset, valid_dataset, test_dataset = (
+                    cifar.get_CIFAR_supcon_datasets(
+                        validation_ratio=cfg["dataset"]["validation_ratio"],
+                        dataset_name=dataset_name,
+                        train_input_size=32,
+                    )
                 )
             else:
-                train_dataset, valid_dataset, test_dataset = cifar.get_CIFAR_supcon_datasets(
-                    validation_ratio=cfg["dataset"]["validation_ratio"],
-                    dataset_name=dataset_name,
+                train_dataset, valid_dataset, test_dataset = (
+                    cifar.get_CIFAR_supcon_datasets(
+                        validation_ratio=cfg["dataset"]["validation_ratio"],
+                        dataset_name=dataset_name,
+                    )
                 )
                 cfg["dataset"]["size"] = 28
         else:
@@ -60,13 +65,25 @@ def main(cfg: OmegaConf) -> None:
 
     batch_size = cfg["dataset"]["batch_size"]
     train_loader = DataLoader(
-        train_dataset, batch_size=batch_size, shuffle=True, num_workers=cfg["num_workers"], pin_memory=True
+        train_dataset,
+        batch_size=batch_size,
+        shuffle=True,
+        num_workers=cfg["num_workers"],
+        pin_memory=True,
     )
     valid_loader = DataLoader(
-        valid_dataset, batch_size=batch_size, shuffle=False, num_workers=cfg["num_workers"], pin_memory=True
+        valid_dataset,
+        batch_size=batch_size,
+        shuffle=False,
+        num_workers=cfg["num_workers"],
+        pin_memory=True,
     )
     test_loader = DataLoader(
-        test_dataset, batch_size=batch_size, shuffle=False, num_workers=cfg["num_workers"], pin_memory=True
+        test_dataset,
+        batch_size=batch_size,
+        shuffle=False,
+        num_workers=cfg["num_workers"],
+        pin_memory=True,
     )
 
     # Model
@@ -77,7 +94,9 @@ def main(cfg: OmegaConf) -> None:
         model_spec = LayerWiseVGGSpec(cfg=cfg)
     else:
         raise ValueError("Model {} is not supported.".format(model_name))
-    model = LayerWiseModel(model_spec=model_spec, num_classes=cfg["dataset"]["num_classes"])
+    model = LayerWiseModel(
+        model_spec=model_spec, num_classes=cfg["dataset"]["num_classes"]
+    )
     model.to(device)
 
     # Optimizer
@@ -91,7 +110,9 @@ def main(cfg: OmegaConf) -> None:
         )
     elif optimizer_name == "adam":
         optimizer = torch.optim.Adam(
-            model.parameters(), lr=cfg["optimizer"]["learning_rate"], weight_decay=cfg["optimizer"]["weight_decay"]
+            model.parameters(),
+            lr=cfg["optimizer"]["learning_rate"],
+            weight_decay=cfg["optimizer"]["weight_decay"],
         )
     else:
         raise ValueError("Optimizer {} is not supported.".format(optimizer_name))
@@ -100,13 +121,19 @@ def main(cfg: OmegaConf) -> None:
     lr_scheduler_name = cfg["lr_scheduler"]["name"]
     if lr_scheduler_name == "multisteplr":
         lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(
-            optimizer=optimizer, milestones=cfg["lr_scheduler"]["milestones"], gamma=cfg["lr_scheduler"]["gamma"]
+            optimizer=optimizer,
+            milestones=cfg["lr_scheduler"]["milestones"],
+            gamma=cfg["lr_scheduler"]["gamma"],
         )
     else:
-        raise ValueError("Learning rate scheduler {} is not supported.".format(lr_scheduler_name))
+        raise ValueError(
+            "Learning rate scheduler {} is not supported.".format(lr_scheduler_name)
+        )
 
     # Set the path to save the trained model
-    model_save_path = os.path.join(os.getcwd(), "save/layer_wise_model/{}/".format(dataset_name))
+    model_save_path = os.path.join(
+        os.getcwd(), "save/layer_wise_model/{}/".format(dataset_name)
+    )
     model_save_name = "{}_{}_lr_{}_decay_{}_bsz_{}_head_{}".format(
         cfg["loss_type"],
         cfg["model"]["name"],
@@ -115,21 +142,24 @@ def main(cfg: OmegaConf) -> None:
         cfg["dataset"]["batch_size"],
         cfg["head_type"],
     )
-    model_save_folder = os.path.join(model_save_path, model_save_name, cfg["id"], "trial_{}".format(cfg["trial"]))
+    model_save_folder = os.path.join(
+        model_save_path, model_save_name, cfg["id"], "trial_{}".format(cfg["trial"])
+    )
     if not os.path.isdir(model_save_folder):
         os.makedirs(model_save_folder)
 
     # Logging
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.INFO)
-    logger.addHandler(logging.FileHandler(os.path.join(model_save_folder, "log.txt"), mode="w"))
+    logger.addHandler(
+        logging.FileHandler(os.path.join(model_save_folder, "log.txt"), mode="w")
+    )
     logger.info("Model information: {}".format(model))
     with open(os.path.join(model_save_folder, "hyperparameter.txt"), mode="w") as f:
         pprint.pprint(cfg, f)
 
     # Training
     model.train()
-    torch.autograd.set_detect_anomaly(True)
     best_valid_acc = 0.0
     test_acc = 0.0
     best_epoch = 0
@@ -141,7 +171,9 @@ def main(cfg: OmegaConf) -> None:
             optimizer.zero_grad()
             if cfg["loss_type"] == "supervised_contrastive":
                 x1, x2, y = x[0].to(device), x[1].to(device), y.to(device)
-                model_forward_result: ModelForwardResult = model.forward_with_loss_aug(x1, x2, y)
+                model_forward_result: ModelForwardResult = model.forward_with_loss_aug(
+                    x1, x2, y
+                )
             else:
                 x, y = x.to(device), y.to(device)
                 model_forward_result: ModelForwardResult = model.forward_with_loss(x, y)
@@ -149,20 +181,31 @@ def main(cfg: OmegaConf) -> None:
                 loss.backward()
                 layer_wise_losses.update(loss.item(), y.size(0))
             model_forward_result.classification_loss.backward()
-            classification_losses.update(model_forward_result.classification_loss.item(), y.size(0))
+            classification_losses.update(
+                model_forward_result.classification_loss.item(), y.size(0)
+            )
             optimizer.step()
         lr_scheduler.step()
 
         # Validation and Logging
-        if cfg["dataset"]["validation_ratio"] > 0.0 and cfg["loss_type"] != "supervised_contrastive":
+        if (
+            cfg["dataset"]["validation_ratio"] > 0.0
+            and cfg["loss_type"] != "supervised_contrastive"
+        ):
             # Calculate validation accuracy.
             # Note that in contrastive training, the linear head has not been trained yet.
-            valid_acc = 100.0 * calc_accuracy(model=model, loader=valid_loader, device=device)
+            valid_acc = 100.0 * calc_accuracy(
+                model=model, loader=valid_loader, device=device
+            )
             if valid_acc > best_valid_acc:
                 best_valid_acc = valid_acc
                 best_epoch = epoch
-                torch.save(model.state_dict(), os.path.join(model_save_folder, "best.pth"))
-                test_acc = 100.0 * calc_accuracy(model=model, loader=test_loader, device=device)
+                torch.save(
+                    model.state_dict(), os.path.join(model_save_folder, "best.pth")
+                )
+                test_acc = 100.0 * calc_accuracy(
+                    model=model, loader=test_loader, device=device
+                )
             logger.info(
                 {
                     "epoch": epoch,
@@ -187,11 +230,21 @@ def main(cfg: OmegaConf) -> None:
             )
 
     if cfg["loss_type"] != "supervised_contrastive":
-        train_acc = 100.0 * calc_accuracy(model=model, loader=train_loader, device=device)
+        train_acc = 100.0 * calc_accuracy(
+            model=model, loader=train_loader, device=device
+        )
         if cfg["dataset"]["validation_ratio"] > 0.0:
-            logger.info({"Last train_acc": train_acc, "best epoch": best_epoch, "test_acc": test_acc})
-        elif not "contrastive" in cfg["loss_type"]:
-            test_acc = 100.0 * calc_accuracy(model=model, loader=test_loader, device=device)
+            logger.info(
+                {
+                    "Last train_acc": train_acc,
+                    "best epoch": best_epoch,
+                    "test_acc": test_acc,
+                }
+            )
+        elif "contrastive" not in cfg["loss_type"]:
+            test_acc = 100.0 * calc_accuracy(
+                model=model, loader=test_loader, device=device
+            )
             logger.info({"Last train_acc": train_acc, "Last test_acc": test_acc})
 
     # Save the last model
