@@ -3,7 +3,11 @@ import dataclasses
 import torch
 from torch import nn, Tensor
 
-from src.models.trainable_block import TrainableBlock1d, TrainableBlock2d, LayerForwardResult
+from src.models.trainable_block import (
+    TrainableBlock1d,
+    TrainableBlock2d,
+    LayerForwardResult,
+)
 from src.models.layer_wise_model_spec import LayerWiseModelSpec
 
 
@@ -47,13 +51,17 @@ class LayerWiseModel(nn.Module):
         super().__init__()
         self.layers: nn.ModuleList = model_spec.layers
         # Classifier at the end of the model, like E2E training.
-        self.classifier: nn.Module = nn.Linear(in_features=model_spec.out_features, out_features=num_classes)
+        self.classifier: nn.Module = nn.Linear(
+            in_features=model_spec.out_features, out_features=num_classes
+        )
         self.criterion: nn.Module = nn.CrossEntropyLoss()
 
         # Number of trainable layers
         self._num_trainable_layers: int = 1
         for layer in self.layers:
-            if isinstance(layer, TrainableBlock1d) or isinstance(layer, TrainableBlock2d):
+            if isinstance(layer, TrainableBlock1d) or isinstance(
+                layer, TrainableBlock2d
+            ):
                 self._num_trainable_layers += 1
 
     def forward(self, x: Tensor) -> Tensor:
@@ -80,8 +88,12 @@ class LayerWiseModel(nn.Module):
         layer_wise_loss_list = []
         model_input = x.clone()
         for layer in self.layers:
-            if isinstance(layer, TrainableBlock1d) or isinstance(layer, TrainableBlock2d):
-                layer_forward_result: LayerForwardResult = layer.forward_with_loss(x, y, model_input)
+            if isinstance(layer, TrainableBlock1d) or isinstance(
+                layer, TrainableBlock2d
+            ):
+                layer_forward_result: LayerForwardResult = layer.forward_with_loss(
+                    x, y, model_input
+                )
 
                 layer_wise_loss_list.append(layer_forward_result.loss)
                 x = layer_forward_result.output.detach()
@@ -90,10 +102,14 @@ class LayerWiseModel(nn.Module):
         classification_loss: Tensor = self.criterion(self.classifier(x), y)
 
         return ModelForwardResult(
-            feature=x, layer_wise_loss_list=layer_wise_loss_list, classification_loss=classification_loss
+            feature=x,
+            layer_wise_loss_list=layer_wise_loss_list,
+            classification_loss=classification_loss,
         )
 
-    def forward_with_loss_aug(self, x1: Tensor, x2: Tensor, y: Tensor) -> ModelForwardResult:
+    def forward_with_loss_aug(
+        self, x1: Tensor, x2: Tensor, y: Tensor
+    ) -> ModelForwardResult:
         """
         Forward augmented inputs `x1` and `x2`, mainly in the case of supervised contrastive learning.
 
@@ -109,8 +125,12 @@ class LayerWiseModel(nn.Module):
         layer_wise_loss_list = []
         model_input = x.clone()
         for layer in self.layers:
-            if isinstance(layer, TrainableBlock1d) or isinstance(layer, TrainableBlock2d):
-                layer_forward_result: LayerForwardResult = layer.forward_with_loss(x, y, model_input)
+            if isinstance(layer, TrainableBlock1d) or isinstance(
+                layer, TrainableBlock2d
+            ):
+                layer_forward_result: LayerForwardResult = layer.forward_with_loss(
+                    x, y, model_input
+                )
                 layer_wise_loss_list.append(layer_forward_result.loss)
                 x = layer_forward_result.output.detach()
             else:
@@ -119,7 +139,9 @@ class LayerWiseModel(nn.Module):
         classification_loss: Tensor = self.criterion(self.classifier(x1), y)
 
         return ModelForwardResult(
-            feature=x, layer_wise_loss_list=layer_wise_loss_list, classification_loss=classification_loss
+            feature=x,
+            layer_wise_loss_list=layer_wise_loss_list,
+            classification_loss=classification_loss,
         )
 
     def forward_with_loss_sequentially(
@@ -143,9 +165,13 @@ class LayerWiseModel(nn.Module):
         loss = None
         num_layers = 0
         for layer in self.layers:
-            if isinstance(layer, TrainableBlock1d) or isinstance(layer, TrainableBlock2d):
+            if isinstance(layer, TrainableBlock1d) or isinstance(
+                layer, TrainableBlock2d
+            ):
                 if layer_index == num_layers:
-                    layer_forward_result: LayerForwardResult = layer.forward_with_loss(x, y, model_input)
+                    layer_forward_result: LayerForwardResult = layer.forward_with_loss(
+                        x, y, model_input
+                    )
                     loss = layer_forward_result.loss
                     x = layer_forward_result.output.detach()
                 else:
@@ -161,7 +187,9 @@ class LayerWiseModel(nn.Module):
             loss = self.criterion(self.classifier(x), y)
 
         assert loss is not None
-        return ModelForwardResultSpecifiedLayer(feature=x, loss=loss, layer_index=layer_index)
+        return ModelForwardResultSpecifiedLayer(
+            feature=x, loss=loss, layer_index=layer_index
+        )
 
     def forward_with_loss_aug_sequentially(
         self, x1: Tensor, x2: Tensor, y: Tensor, layer_index: int = 0
@@ -186,9 +214,13 @@ class LayerWiseModel(nn.Module):
         loss = None
         num_layers = 0
         for layer in self.layers:
-            if isinstance(layer, TrainableBlock1d) or isinstance(layer, TrainableBlock2d):
+            if isinstance(layer, TrainableBlock1d) or isinstance(
+                layer, TrainableBlock2d
+            ):
                 if layer_index == num_layers:
-                    layer_forward_result: LayerForwardResult = layer.forward_with_loss(x, y, model_input)
+                    layer_forward_result: LayerForwardResult = layer.forward_with_loss(
+                        x, y, model_input
+                    )
                     loss = layer_forward_result.loss
                     x = layer_forward_result.output.detach()
                 else:
@@ -204,11 +236,13 @@ class LayerWiseModel(nn.Module):
             loss = self.criterion(self.classifier(x1), y)
 
         assert loss is not None
-        return ModelForwardResultSpecifiedLayer(feature=x, loss=loss, layer_index=layer_index)
+        return ModelForwardResultSpecifiedLayer(
+            feature=x, loss=loss, layer_index=layer_index
+        )
 
     @property
     def encoder(self) -> nn.Module:
-        layers = self.layers
+        layers: nn.ModuleList = self.layers
         # Remove the final classifier of VGG.
         # This is a temporary solution.
         while not isinstance(layers[-1], nn.Flatten):

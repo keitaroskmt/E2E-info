@@ -1,6 +1,7 @@
 import torch
 from torch import Tensor
 from torch.nn import functional as F
+from omegaconf import DictConfig
 
 from src.hsic.hsic import NormalizedHSIC
 
@@ -12,7 +13,7 @@ class LayerWiseLossConfig:
         cfg: Hydra configuration dictionary.
     """
 
-    def __init__(self, cfg: dict):
+    def __init__(self, cfg: DictConfig):
         self.loss_type: str = cfg["loss_type"]
         self.num_classes: int = cfg["dataset"]["num_classes"]
         # Settings for supervised contrastive loss.
