@@ -14,18 +14,22 @@ class LayerWiseLossConfig:
 
     def __init__(self, cfg: dict):
         self.loss_type: str = cfg["loss_type"]
-        self.num_classes: int = cfg["num_classes"]
-        self.nhsic_reg: str = cfg["nhsic_reg"]
+        self.num_classes: int = cfg["dataset"]["num_classes"]
         # Settings for supervised contrastive loss.
         self.temperature: float = cfg["temperature"]
         self.base_temperature: float = cfg["base_temperature"]
         # Settings for nHSIC regularization.
         self.nhsic: NormalizedHSIC = NormalizedHSIC()
+        self.nhsic_reg: str = cfg["nhsic_reg"]
         self.lambda_nhsic: float = cfg["lambda_nhsic"]
 
-        if not self.loss_type in ["cross_entropy", "similarity", "supervised_contrastive"]:
+        if self.loss_type not in [
+            "cross_entropy",
+            "similarity",
+            "supervised_contrastive",
+        ]:
             raise ValueError(f"Invalid loss type: {self.loss_type}")
-        if not self.nhsic_reg in ["none", "global", "local"]:
+        if self.nhsic_reg not in ["none", "global", "local"]:
             raise ValueError(f"Invalid nHSIC regularization type: {self.nhsic_reg}")
 
 
@@ -39,7 +43,9 @@ class LayerWiseLoss:
     def __init__(self, loss_cfg: LayerWiseLossConfig):
         self.loss_cfg: LayerWiseLossConfig = loss_cfg
 
-    def criterion(self, fx: Tensor, y: Tensor, x: Tensor, model_input: Tensor) -> Tensor:
+    def criterion(
+        self, fx: Tensor, y: Tensor, x: Tensor, model_input: Tensor
+    ) -> Tensor:
         """
         Compute loss function.
         Args:
@@ -114,7 +120,9 @@ class LayerWiseLoss:
         anchor_feature = contrast_feature
 
         # compute logits
-        anchor_dot_product = torch.div(torch.matmul(anchor_feature, contrast_feature.T), self.temperature)
+        anchor_dot_product = torch.div(
+            torch.matmul(anchor_feature, contrast_feature.T), self.loss_cfg.temperature
+        )
         # for numerical stability
         logits_max, _ = torch.max(anchor_dot_product, dim=1, keepdim=True)
         logits = anchor_dot_product - logits_max.detach()
@@ -123,7 +131,10 @@ class LayerWiseLoss:
         mask = mask.repeat(anchor_count, contrast_count)
         # mask-out self-contrast cases (set the diagonal elements of mask to zero)
         logits_mask = torch.scatter(
-            torch.ones_like(mask), 1, torch.arange(batch_size * anchor_count).view(-1, 1).to(y.device), 0
+            torch.ones_like(mask),
+            1,
+            torch.arange(batch_size * anchor_count).view(-1, 1).to(y.device),
+            0,
         )
         mask = mask * logits_mask
 
@@ -137,7 +148,10 @@ class LayerWiseLoss:
         mean_log_prob_pos = (mask * log_prob).sum(1) / mask.sum(1)
 
         # loss
-        loss = -(self.temperature / self.base_temperature) * mean_log_prob_pos
+        loss = (
+            -(self.loss_cfg.temperature / self.loss_cfg.base_temperature)
+            * mean_log_prob_pos
+        )
         loss = loss.view(anchor_count, batch_size).mean()
         return loss
 
@@ -146,7 +160,9 @@ class LayerWiseLoss:
         Calculate nHSIC(fx, model_input).
         It is used to prevent the information loss in the block.
         """
-        return self.loss_cfg.lambda_nhsic * self.loss_cfg.nhsic.calc_loss(fx, model_input)
+        return self.loss_cfg.lambda_nhsic * self.loss_cfg.nhsic.calc_loss(
+            fx, model_input
+        )
 
     def _calc_nhsic_local(self, fx: Tensor, x: Tensor) -> Tensor:
         """
