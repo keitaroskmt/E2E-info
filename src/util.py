@@ -1,5 +1,6 @@
 import torch
 from torch import nn
+import torch.nn.functional as F
 from torch.utils.data import DataLoader
 
 
@@ -36,3 +37,16 @@ class AverageMeter(object):
         self.sum += val * n
         self.count += n
         self.avg = self.sum / self.count
+
+
+class WholeAvgPool2d(nn.Module):
+    """
+    `torch.nn.AvgPool2d` with `kernel_size` set to the whole input size
+    Please see `torch.nn.AvgPool2d` for more information.
+    """
+
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, input: torch.Tensor) -> torch.Tensor:
+        return F.avg_pool2d(input, input.size()[3])
