@@ -38,12 +38,23 @@ python main_lw.py model.name=vgg11
 ```
 
 or modifying configuration files under `conf` directory.
+To add your new local loss, please edit `src/models/layer_wise_loss.py`.
+
+### Signal Propagation
+
+To train the model with signal propagation algorithm by [Kohan+, 2022](https://arxiv.org/abs/2204.01723), which is one of the local training methods, run
+
+```bash
+python main_sp.py
+```
+
+We provide a separate implementation apart from `main_lw.py` because signal propagation propagates label information besides input image and the model architecture is different.
 
 ### Forward-Forward Algorithm
 
 Train models with Forward-Forward algorithm by [Hinton, 2022](https://arxiv.org/abs/2212.13345) with
 
-```
+```bash
 python main_ff.py
 ```
 
@@ -61,11 +72,13 @@ We can also provide class information by subtracting the class prototypes as fol
 
 <a href="url"><img src="https://github.com/keitaroskmt/E2E-info/blob/1c62cb9223ee76d020eed0235491cf9c3419d071/images/ff_subtract.png" width=400></a>
 
+## nHSIC Evaluation
+
 ## TODO List
 
 #### Overall
 
-- [ ] Add documents to run main files
+- [x] Add documents to run main files
 - [ ] Test on GPU machine
 - [ ] Add codes to reproduce nHSIC dynamics
 
@@ -73,7 +86,7 @@ We can also provide class information by subtracting the class prototypes as fol
 
 - [x] Layer-wise training
 - [x] Sequential layer-wise training
-- [ ] Signal Propagation
+- [x] Signal Propagation
 - [x] Forward-Forward algorithm
 
 #### Architecture
