@@ -23,7 +23,7 @@ pip install -r requirements.txt
 
 ## Training
 
-### Layer-wise Training
+### Simultaneous Layer-wise Training
 
 To train the model in the same setting of the paper, run
 
@@ -40,6 +40,17 @@ python main_lw.py model.name=vgg11
 or modifying configuration files under `conf` directory.
 To add your new local loss, please edit `src/models/layer_wise_loss.py`.
 
+### Sequential Layer-wise Training
+
+To perform layer-wise training in a sequential manner, run
+
+```bash
+python main_lw_seq.py
+```
+
+Note that it takes more time, as it trains each layer sequentially.
+For details, please refer to Section B.1 in our paper.
+
 ### Signal Propagation
 
 To train the model with signal propagation algorithm by [Kohan+, 2022](https://arxiv.org/abs/2204.01723), which is one of the local training methods, run
@@ -48,7 +59,7 @@ To train the model with signal propagation algorithm by [Kohan+, 2022](https://a
 python main_sp.py
 ```
 
-We provide a separate implementation apart from `main_lw.py` because signal propagation propagates label information besides input image and the model architecture is different.
+We provide a separate implementation from `main_lw.py` because signal propagation propagates label information besides input image and the model architecture is slightly different.
 
 ### Forward-Forward Algorithm
 
@@ -64,7 +75,7 @@ You can try new models by adding new classes under `src/models/forward_forward_m
 Embedding label information into the inputs is one of the characteristics of the Forward-Forward algorithm, and it is supported in several ways in addition to the original paper.
 For more details, please refer to the descriptions in the `LabelEmbedder` class under `src/models/forward_forward_block.py`.
 
-For example, settings `method=top-left` embeds class information as in the original paper like
+For example, settings `method=top-left` embeds class information as in the original paper, like
 
 <a href="url"><img src="https://github.com/keitaroskmt/E2E-info/blob/1c62cb9223ee76d020eed0235491cf9c3419d071/images/ff_top_left.png" width=400></a>
 
