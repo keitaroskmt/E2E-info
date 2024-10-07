@@ -74,6 +74,20 @@ We can also provide class information by subtracting the class prototypes as fol
 
 ## nHSIC Evaluation
 
+## Citation
+If you find our codes useful for your research, please cite using this BibTeX:
+```BibTex
+@article{
+  sakamoto2024endtoend,
+  title={End-to-End Training Induces Information Bottleneck through Layer-Role Differentiation: A Comparative Analysis with Layer-wise Training},
+  author={Keitaro Sakamoto and Issei Sato},
+  journal={Transactions on Machine Learning Research},
+  issn={2835-8856},
+  year={2024},
+  url={https://openreview.net/forum?id=O3wmRh2SfT},
+}
+```
+
 ## TODO List
 
 #### Overall
