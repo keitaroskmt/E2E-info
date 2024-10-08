@@ -249,9 +249,7 @@ def main(cfg: DictConfig) -> None:
 
     # Save the last model
     torch.save(model.state_dict(), os.path.join(model_save_folder, "last.pth"))
-
-    pprint.pprint(cfg)
-    print("Output saved to {}".format(model_save_folder))
+    logger.info({"Model saved to": model_save_folder})
 
 
 if __name__ == "__main__":

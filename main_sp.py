@@ -186,7 +186,7 @@ def main(cfg: DictConfig) -> None:
     logger.info({"train_acc": train_acc, "test_acc": test_acc})
 
     torch.save(model.state_dict(), os.path.join(model_save_folder, "last.pt"))
-    print("Output folder: {}".format(model_save_folder))
+    logger.info({"Model saved to": model_save_folder})
 
 
 if __name__ == "__main__":
