@@ -3,7 +3,7 @@ from torch import Tensor
 from torch.nn import functional as F
 from omegaconf import DictConfig
 
-from src.hsic.hsic import NormalizedHSIC
+from src.nhsic.nhsic import NormalizedHSIC
 
 
 class LayerWiseLossConfig:
