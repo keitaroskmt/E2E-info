@@ -9,14 +9,14 @@ import pprint
 import torch
 from torch.utils.data import DataLoader
 import hydra
-from omegaconf import OmegaConf
+from omegaconf import DictConfig
 
 from src.datasets import mnist, cifar
 from src.models.forward_forward_block import LabelEmbedder
 from src.models.forward_forward_model import FFModel, FFMLP, FFCNN
 
 
-def calc_accuracy(model, loader: DataLoader, device: str) -> float:
+def calc_accuracy(model, loader: DataLoader, device: torch.device | str) -> float:
     model.eval()
     correct = 0
     with torch.no_grad():
@@ -26,19 +26,24 @@ def calc_accuracy(model, loader: DataLoader, device: str) -> float:
     return correct / len(loader.dataset)
 
 
-def train(cfg, model: FFModel, train_loader: DataLoader, device: str):
+def train(
+    cfg, model: FFModel, train_loader: DataLoader, device: torch.device | str
+) -> None:
     model.train()
     if cfg["train_method"] == "simultaneous":
-        model.train_model_simultaneously(train_loader=train_loader, num_epochs=cfg["num_epochs"], device=device)
+        model.train_model_simultaneously(
+            train_loader=train_loader, num_epochs=cfg["num_epochs"], device=device
+        )
     elif cfg["train_method"] == "sequential":
-        model.train_model_sequentially(train_loader=train_loader, num_epochs=cfg["num_epochs"], device=device)
+        model.train_model_sequentially(
+            train_loader=train_loader, num_epochs=cfg["num_epochs"], device=device
+        )
     else:
         raise ValueError("Unknown train method: {}".format(cfg["train_method"]))
 
 
-
 @hydra.main(config_path="conf", config_name="main_ff", version_base=None)
-def main(cfg: OmegaConf) -> None:
+def main(cfg: DictConfig) -> None:
     seed = cfg["seed"]
     torch.manual_seed(seed)
 
@@ -54,22 +59,41 @@ def main(cfg: OmegaConf) -> None:
     if dataset_name == "mnist":
         train_dataset, valid_dataset, test_dataset = mnist.get_MNIST_datasets()
     elif dataset_name == "cifar10" or dataset_name == "cifar100":
-        train_dataset, valid_dataset, test_dataset = cifar.get_CIFAR_datasets(dataset_name=dataset_name)
+        train_dataset, valid_dataset, test_dataset = cifar.get_CIFAR_datasets(
+            dataset_name=dataset_name
+        )
     else:
         raise ValueError("Dataset name must be 'mnist', 'cifar10' or 'cifar100'.")
 
     batch_size = cfg["dataset"]["batch_size"]
     train_loader = DataLoader(
-        train_dataset, batch_size=batch_size, shuffle=True, num_workers=cfg["num_workers"], pin_memory=True
+        train_dataset,
+        batch_size=batch_size,
+        shuffle=True,
+        num_workers=cfg["num_workers"],
+        pin_memory=True,
     )
     _ = DataLoader(
-        valid_dataset, batch_size=batch_size, shuffle=False, num_workers=cfg["num_workers"], pin_memory=True
+        valid_dataset,
+        batch_size=batch_size,
+        shuffle=False,
+        num_workers=cfg["num_workers"],
+        pin_memory=True,
     )
     test_loader = DataLoader(
-        test_dataset, batch_size=batch_size, shuffle=False, num_workers=cfg["num_workers"], pin_memory=True
+        test_dataset,
+        batch_size=batch_size,
+        shuffle=False,
+        num_workers=cfg["num_workers"],
+        pin_memory=True,
     )
 
-    label_embedder = LabelEmbedder(train_loader=train_loader, num_classes=cfg["dataset"]["num_classes"], method=cfg["label_embedder"]["method"], device=device)
+    label_embedder = LabelEmbedder(
+        train_loader=train_loader,
+        num_classes=cfg["dataset"]["num_classes"],
+        method=cfg["label_embedder"]["method"],
+        device=device,
+    )
 
     # Model
     model_name = cfg["model"]["name"]
@@ -77,13 +101,22 @@ def main(cfg: OmegaConf) -> None:
     num_channels = cfg["dataset"]["num_channels"]
     if model_name == "mlp":
         if label_embedder_method.endswith("2channel"):
-            raise ValueError("{} cannot be specified for MLP.".format(label_embedder_method))
+            raise ValueError(
+                "{} cannot be specified for MLP.".format(label_embedder_method)
+            )
         model = FFMLP(
             lr=cfg["optimizer"]["learning_rate"],
             opt_name=cfg["optimizer"]["name"],
             threshold=cfg["threshold"],
             num_classes=cfg["dataset"]["num_classes"],
-            dims=[cfg["dataset"]["size"] * cfg["dataset"]["size"] * num_channels, 1000, 1000, 1000, 1000, cfg["dataset"]["num_classes"]],
+            dims=[
+                cfg["dataset"]["size"] * cfg["dataset"]["size"] * num_channels,
+                1000,
+                1000,
+                1000,
+                1000,
+                cfg["dataset"]["num_classes"],
+            ],
             label_embedder=label_embedder,
             device=device,
         )
@@ -103,24 +136,29 @@ def main(cfg: OmegaConf) -> None:
     else:
         raise ValueError("Model name must be 'mlp' or 'cnn'.")
 
-
     # Set the path to save the trained model
-    model_save_path = os.path.join(os.getcwd(), "save/forward_forward_model/{}/".format(dataset_name))
+    model_save_path = os.path.join(
+        os.getcwd(), "save/forward_forward_model/{}/".format(dataset_name)
+    )
     model_save_name = "{}_{}_lr_{}_bsz_{}_{}".format(
         cfg["model"]["name"],
         cfg["label_embedder"]["method"],
         cfg["optimizer"]["learning_rate"],
         cfg["dataset"]["batch_size"],
-        cfg["train_method"]
+        cfg["train_method"],
     )
-    model_save_folder = os.path.join(model_save_path, model_save_name, cfg["id"], "trial_{}".format(cfg["trial"]))
+    model_save_folder = os.path.join(
+        model_save_path, model_save_name, cfg["id"], "trial_{}".format(cfg["trial"])
+    )
     if not os.path.isdir(model_save_folder):
         os.makedirs(model_save_folder)
 
     # Logging
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.INFO)
-    logger.addHandler(logging.FileHandler(os.path.join(model_save_folder, "log.txt"), mode="w"))
+    logger.addHandler(
+        logging.FileHandler(os.path.join(model_save_folder, "log.txt"), mode="w")
+    )
     logger.info("Model information: {}".format(model))
     with open(os.path.join(model_save_folder, "hyperparameter.txt"), mode="w") as f:
         pprint.pprint(cfg, f)
@@ -133,7 +171,6 @@ def main(cfg: OmegaConf) -> None:
     test_acc = 100.0 * calc_accuracy(model=model, loader=test_loader, device=device)
 
     logger.info({"train_acc": train_acc, "test_acc": test_acc})
-
 
     # Save the last model
     torch.save(model.state_dict(), os.path.join(model_save_folder, "last.pth"))

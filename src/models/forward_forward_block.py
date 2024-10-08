@@ -15,7 +15,15 @@ class FFBlock(nn.Module):
         threshold: threshold to be used in block-wise loss function.
         activation: activation function to be used after the block.
     """
-    def __init__(self, block: nn.Module, lr: float, opt_name: str, threshold: float, activation: str = "relu"):
+
+    def __init__(
+        self,
+        block: nn.Module,
+        lr: float,
+        opt_name: str,
+        threshold: float,
+        activation: str = "relu",
+    ):
         super().__init__()
         self.block = block
         self.threshold = threshold
@@ -72,13 +80,24 @@ class LabelEmbedder:
             "fixed-example-mixture": Mix the original input with the fixed example for the specified class.
             "fixed-example-2channel": Add the fixed example for the specified class in the input channel.
     """
-    def __init__(self, train_loader: DataLoader, num_classes: int = 10, method: str = "top-left", device: str = "None"):
+
+    def __init__(
+        self,
+        train_loader: DataLoader,
+        num_classes: int = 10,
+        method: str = "top-left",
+        device: torch.device | str = "cpu",
+    ):
         self.num_classes = num_classes
         self.method = method
         if method.startswith("average"):
-            self.average_image_for_each_class = self._average_image_for_each_class(train_loader, device)
+            self.average_image_for_each_class = self._average_image_for_each_class(
+                train_loader, device
+            )
         if method.startswith("fixed-example"):
-            self.fixed_example_for_each_class = self._fixed_example_for_each_class(train_loader, device)
+            self.fixed_example_for_each_class = self._fixed_example_for_each_class(
+                train_loader, device
+            )
 
     def embed_label(self, x: torch.Tensor, y: torch.Tensor | int) -> torch.Tensor:
         """
@@ -99,37 +118,55 @@ class LabelEmbedder:
             x_[range(x.shape[0]), :, y] = x.max()
             return x_.view(x.shape[0], x.shape[1], width, height)
         elif self.method == "average-subtraction":
-            return x - self.average_image_for_each_class[y].view(-1, x.shape[1], x.shape[2], x.shape[3])
+            return x - self.average_image_for_each_class[y].view(
+                -1, x.shape[1], x.shape[2], x.shape[3]
+            )
         elif self.method == "average-mixture":
-            return 0.5 * x + 0.5 * self.average_image_for_each_class[y].view(-1, x.shape[1], x.shape[2], x.shape[3])
+            return 0.5 * x + 0.5 * self.average_image_for_each_class[y].view(
+                -1, x.shape[1], x.shape[2], x.shape[3]
+            )
         elif self.method == "average-2channel":
             return torch.cat(
                 (
                     x,
                     torch.broadcast_to(
-                        self.average_image_for_each_class[y].view(-1, x.shape[1], x.shape[2], x.shape[3]), x.shape
+                        self.average_image_for_each_class[y].view(
+                            -1, x.shape[1], x.shape[2], x.shape[3]
+                        ),
+                        x.shape,
                     ),
                 ),
                 dim=1,
             )
         elif self.method == "fixed-example-subtraction":
-            return x - self.fixed_example_for_each_class[y].view(-1, x.shape[1], x.shape[2], x.shape[3])
+            return x - self.fixed_example_for_each_class[y].view(
+                -1, x.shape[1], x.shape[2], x.shape[3]
+            )
         elif self.method == "fixed-example-mixture":
-            return 0.5 * x + 0.5 * self.fixed_example_for_each_class[y].view(-1, x.shape[1], x.shape[2], x.shape[3])
+            return 0.5 * x + 0.5 * self.fixed_example_for_each_class[y].view(
+                -1, x.shape[1], x.shape[2], x.shape[3]
+            )
         elif self.method == "fixed-example-2channel":
             return torch.cat(
                 (
                     x,
                     torch.broadcast_to(
-                        self.fixed_example_for_each_class[y].view(-1, x.shape[1], x.shape[2], x.shape[3]), x.shape
+                        self.fixed_example_for_each_class[y].view(
+                            -1, x.shape[1], x.shape[2], x.shape[3]
+                        ),
+                        x.shape,
                     ),
                 ),
                 dim=1,
             )
         else:
-            raise ValueError("label_embedding_method: {} is not supported.".format(self.method))
+            raise ValueError(
+                "label_embedding_method: {} is not supported.".format(self.method)
+            )
 
-    def _average_image_for_each_class(self, train_loader: DataLoader, device) -> torch.Tensor:
+    def _average_image_for_each_class(
+        self, train_loader: DataLoader, device
+    ) -> torch.Tensor:
         """
         Calculate the average image for each class.
         Returns:
@@ -143,7 +180,10 @@ class LabelEmbedder:
             for i in range(self.num_classes):
                 sum_image_within_class_for_batch = torch.sum(x[y == i], axis=0)
                 if i in sum_image_for_each_class:
-                    assert (sum_image_for_each_class[i].shape == sum_image_within_class_for_batch.shape)
+                    assert (
+                        sum_image_for_each_class[i].shape
+                        == sum_image_within_class_for_batch.shape
+                    )
                     sum_image_for_each_class[i] += sum_image_within_class_for_batch
                 else:
                     sum_image_for_each_class[i] = sum_image_within_class_for_batch
@@ -154,11 +194,15 @@ class LabelEmbedder:
             if not isinstance(targets, torch.Tensor):
                 targets = torch.tensor(targets)
             num_data_within_class = targets[targets == i].numel()
-            average_image_for_each_class.append(sum_image_for_each_class[i] / num_data_within_class)
+            average_image_for_each_class.append(
+                sum_image_for_each_class[i] / num_data_within_class
+            )
 
         return torch.stack(average_image_for_each_class, dim=0).to(device)
 
-    def _fixed_example_for_each_class(self, train_loader: DataLoader, device) -> torch.Tensor:
+    def _fixed_example_for_each_class(
+        self, train_loader: DataLoader, device
+    ) -> torch.Tensor:
         """
         Fetch a fixed example for each class.
         Returns:

@@ -15,10 +15,12 @@ class FFModel(torch.nn.Module):
         label_embedder: `LabelEmbedder` object, which embeds label information into iput data.
     """
 
-    def __init__(self, layers: nn.ModuleList, num_classes: int, label_embedder: LabelEmbedder):
+    def __init__(
+        self, layers: nn.ModuleList, num_classes: int, label_embedder: LabelEmbedder
+    ):
         super().__init__()
-        self.layers = layers
-        self.num_classes = num_classes
+        self.layers: nn.ModuleList = layers
+        self.num_classes: int = num_classes
         self.label_embedder = label_embedder
 
     def predict(self, x: torch.Tensor) -> torch.Tensor:
@@ -41,7 +43,9 @@ class FFModel(torch.nn.Module):
         goodness_per_label = torch.cat(goodness_per_label, 1)
         return goodness_per_label.argmax(1)
 
-    def train_model_simultaneously(self, train_loader: DataLoader, num_epochs: int, device: str):
+    def train_model_simultaneously(
+        self, train_loader: DataLoader, num_epochs: int, device: torch.device | str
+    ):
         """
         Train the model with local Forward-Forward loss.
         Each layer is trained simultaneously for every forward pass.
@@ -60,7 +64,9 @@ class FFModel(torch.nn.Module):
                         layer.train_block(h_pos, h_neg)
                     h_pos, h_neg = layer(h_pos).detach(), layer(h_neg).detach()
 
-    def train_model_sequentially(self, train_loader: DataLoader, num_epochs: int, device: str):
+    def train_model_sequentially(
+        self, train_loader: DataLoader, num_epochs: int, device: torch.device | str
+    ):
         """
         Train the model with local Forward-Forward loss.
         Each layer is trained sequentially, starting from the first layer.
@@ -79,7 +85,10 @@ class FFModel(torch.nn.Module):
                     h_pos, h_neg = x_pos, x_neg
                     # preparing training data for layer i
                     for earlier_layer in self.layers[:i]:
-                        h_pos, h_neg = earlier_layer(h_pos).detach(), earlier_layer(h_neg).detach()
+                        h_pos, h_neg = (
+                            earlier_layer(h_pos).detach(),
+                            earlier_layer(h_neg).detach(),
+                        )
                     layer.train_block(h_pos, h_neg)
 
 
@@ -90,12 +99,23 @@ class FFMLP(FFModel):
         dims: dimensions of each layer. (e.g. [784, 1000, 1000, 1000, 1000, 10]])
     """
 
-    def __init__(self, lr: float, opt_name: str, threshold: float, num_classes: int, dims: list[int], label_embedder: LabelEmbedder, device="cuda"):
+    def __init__(
+        self,
+        lr: float,
+        opt_name: str,
+        threshold: float,
+        num_classes: int,
+        dims: list[int],
+        label_embedder: LabelEmbedder,
+        device: torch.device | str = "cpu",
+    ):
         layers = nn.ModuleList([nn.Flatten()])
         for d in range(len(dims) - 1):
             layers.append(
                 FFBlock(
-                    nn.Linear(in_features=dims[d], out_features=dims[d + 1], device=device),
+                    nn.Linear(
+                        in_features=dims[d], out_features=dims[d + 1], device=device
+                    ),
                     lr=lr,
                     opt_name=opt_name,
                     threshold=threshold,
@@ -109,33 +129,59 @@ class FFCNN(FFModel):
     Convolutional Neural Network trained with forward-forward algorithm.
     """
 
-    def __init__(self, lr: float, opt_name: str, threshold: float, num_classes: int, image_width: int, label_embedder: LabelEmbedder, num_channels=1, device="cuda"):
-        layers = nn.ModuleList([
-            FFBlock(
-                nn.Conv2d(in_channels=num_channels, out_channels=32, kernel_size=(3, 3), device=device),
-                lr=lr,
-                opt_name=opt_name,
-                threshold=threshold,
-            ),
-            FFBlock(
-                nn.Conv2d(in_channels=32, out_channels=64, kernel_size=(3, 3), device=device),
-                lr=lr,
-                opt_name=opt_name,
-                threshold=threshold,
-            ),
-            nn.MaxPool2d(kernel_size=(2, 2)),
-            nn.Flatten(),
-            FFBlock(
-                nn.Linear(in_features=(image_width - 4) ** 2 * 64 // 4, out_features=128, device=device),
-                lr=lr,
-                opt_name=opt_name,
-                threshold=threshold,
-            ),
-            FFBlock(
-                nn.Linear(in_features=128, out_features=num_classes, device=device),
-                lr=lr,
-                opt_name=opt_name,
-                threshold=threshold,
-            ),
-        ])
+    def __init__(
+        self,
+        lr: float,
+        opt_name: str,
+        threshold: float,
+        num_classes: int,
+        image_width: int,
+        label_embedder: LabelEmbedder,
+        num_channels=1,
+        device: torch.device | str = "cpu",
+    ):
+        layers = nn.ModuleList(
+            [
+                FFBlock(
+                    nn.Conv2d(
+                        in_channels=num_channels,
+                        out_channels=32,
+                        kernel_size=(3, 3),
+                        device=device,
+                    ),
+                    lr=lr,
+                    opt_name=opt_name,
+                    threshold=threshold,
+                ),
+                FFBlock(
+                    nn.Conv2d(
+                        in_channels=32,
+                        out_channels=64,
+                        kernel_size=(3, 3),
+                        device=device,
+                    ),
+                    lr=lr,
+                    opt_name=opt_name,
+                    threshold=threshold,
+                ),
+                nn.MaxPool2d(kernel_size=(2, 2)),
+                nn.Flatten(),
+                FFBlock(
+                    nn.Linear(
+                        in_features=(image_width - 4) ** 2 * 64 // 4,
+                        out_features=128,
+                        device=device,
+                    ),
+                    lr=lr,
+                    opt_name=opt_name,
+                    threshold=threshold,
+                ),
+                FFBlock(
+                    nn.Linear(in_features=128, out_features=num_classes, device=device),
+                    lr=lr,
+                    opt_name=opt_name,
+                    threshold=threshold,
+                ),
+            ]
+        )
         super().__init__(layers, num_classes, label_embedder)
