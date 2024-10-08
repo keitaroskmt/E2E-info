@@ -18,7 +18,7 @@ class NormalizedHSIC:
         y: Tensor,
         x_kernel: str = "gaussian",
         y_kernel: str = "gaussian",
-    ) -> float:
+    ) -> Tensor:
         batch_size = x.size(0)
         k_x = self._kernel_matrix(x, kernel=x_kernel)
         k_y = self._kernel_matrix(y, kernel=y_kernel)
@@ -28,7 +28,7 @@ class NormalizedHSIC:
         k_y_inv = torch.inverse(k_y + self.epsilon * batch_size * m_I)
         r_x = torch.matmul(k_x, k_x_inv)
         r_y = torch.matmul(k_y, k_y_inv)
-        return torch.sum(r_x * r_y.T).item()
+        return torch.sum(r_x * r_y.T)
 
     def _kernel_matrix(self, x: Tensor, kernel: str = "gaussian") -> Tensor:
         if kernel == "gaussian":

@@ -67,10 +67,16 @@ class LayerWiseLoss:
             assert False, "Unreachable"
 
         # Add nHSIC regularization.
-        if self.loss_cfg.nhsic_reg == "global":
+        if self.loss_cfg.nhsic_reg == "none":
+            pass
+        elif self.loss_cfg.nhsic_reg == "global":
             loss -= self._calc_nhsic_global(fx, model_input)
         elif self.loss_cfg.nhsic_reg == "local":
             loss -= self._calc_nhsic_local(fx, x)
+        else:
+            raise ValueError(
+                f"Invalid nHSIC regularization type: {self.loss_cfg.nhsic_reg}"
+            )
 
         return loss
 
@@ -161,7 +167,7 @@ class LayerWiseLoss:
         Calculate nHSIC(fx, model_input).
         It is used to prevent the information loss in the block.
         """
-        return self.loss_cfg.lambda_nhsic * self.loss_cfg.nhsic.calc_loss(
+        return self.loss_cfg.lambda_nhsic * self.loss_cfg.nhsic.calc_score(
             fx, model_input
         )
 
@@ -170,4 +176,4 @@ class LayerWiseLoss:
         Calculate nHSIC(fx, x).
         It is used to prevent the information loss in the block.
         """
-        return self.loss_cfg.lambda_nhsic * self.loss_cfg.nhsic.calc_loss(fx, x)
+        return self.loss_cfg.lambda_nhsic * self.loss_cfg.nhsic.calc_score(fx, x)
